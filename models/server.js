@@ -62,7 +62,7 @@ class Server {
     routes() {
         // this.app.use(this.paths.videoInfo, require('../routes/video-info'));
         // this.app.use(this.paths.videoDownload, require('../routes/video-download'));
-        this.app.use(this.paths.youDown, require('../routes/you-down'));
+        this.app.use(this.paths.youtuDown, require('../routes/youtu-down'));
 
 
     }

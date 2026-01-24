@@ -5,7 +5,7 @@ const fs = require('fs')
 const infoVideo = async (req, res) => {
     const { url } = req.body;
 
-    // let url = 'https://youtu.be/z0hWGUfxbbg?si=z-W7Tv9ttfi-DG52'
+    
 
 
     try {

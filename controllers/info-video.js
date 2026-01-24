@@ -3,11 +3,12 @@ const fs = require('fs')
 
 
 const infoVideo = async(req, res) => {
-    // let url = req.url;
-    let url = 'https://youtu.be/z0hWGUfxbbg?si=z-W7Tv9ttfi-DG52'
+
+    let url = req.url;
+    // let url = 'https://youtu.be/z0hWGUfxbbg?si=z-W7Tv9ttfi-DG52'
 
 
-    // res.json({ messege: "info video funcionando" })
+    
 
     
 
@@ -21,11 +22,11 @@ const infoVideo = async(req, res) => {
     
 
     // the info the we retrive can be read directly or passed to youtube-dl
-    // console.log(info.description)
+    
     
 
-    const result = await fromInfo('videoInfo.json', { listFormats: true })
-    // console.log(result.stdout)
+    
+    
     res.json({
         title: info.title,
         duration: info.duration,

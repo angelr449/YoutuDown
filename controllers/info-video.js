@@ -3,18 +3,21 @@ const fs = require('fs')
 
 
 const infoVideo = async (req, res) => {
-    const { url } = req.body;
+    const { url } = req.query;
 
-    
+
 
 
     try {
         // with this function we get a YtResponse with all the info about the video
         // this info can be read and used and then passed again to youtube-dl, without having to query it again
         const info = await getInfo(url)
+        const infoId = crypto.randomUUID();
+        const infoPath = `./tmp/${infoId}.json`;
+
 
         // write the info to a file for youtube-dl to read it
-        fs.writeFileSync('./videoInfo.json', JSON.stringify(info))
+        await fs.writeFileSync(infoPath, JSON.stringify(info, null, 2))
 
 
         // the info the we retrive can be read directly or passed to youtube-dl
@@ -22,26 +25,36 @@ const infoVideo = async (req, res) => {
 
         // Fomats Map
 
-        const simplifiedFormats = info.formats.map(f => ({
-            id: f.format_id,
-            ext: f.ext,
-            resolution: f.format_note || `${f.height || 0}p`,
-            hasAudio: f.acodec && f.acodec !== 'none',
-            hasVideo: f.vcodec && f.vcodec !== 'none'
-        }));
+        // const simplifiedFormats = info.formats.map(f => ({
+        //     id: f.format_id,
+        //     ext: f.ext,
+        //     resolution: f.format_note || `${f.height || 0}p`,
+        //     hasAudio: f.acodec && f.acodec !== 'none',
+        //     hasVideo: f.vcodec && f.vcodec !== 'none'
+        // }));
+        const simplifiedFormats = info.formats
+            .filter(f => f.ext === 'mp4')
+            .map(f => ({
+                id: f.format_id,
+                resolution: f.format_note || `${f.height || 0}p`,
+                hasAudio: f.acodec !== 'none',
+                hasVideo: f.vcodec !== 'none'
+            }));
+
 
 
 
 
 
         res.json({
+            infoId,
             title: info.title,
             duration: info.duration,
             formats: simplifiedFormats
         })
     } catch (err) {
 
-        res.status(500).json({ error: err.messege });
+        res.status(500).json({ error: err.message });
 
     }
 

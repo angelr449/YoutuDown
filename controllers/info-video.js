@@ -25,14 +25,7 @@ const infoVideo = async (req, res) => {
 
         // Fomats Map
 
-        // const simplifiedFormats = info.formats.map(f => ({
-        //     id: f.format_id,
-        //     ext: f.ext,
-        //     resolution: f.format_note || `${f.height || 0}p`,
-        //     hasAudio: f.acodec && f.acodec !== 'none',
-        //     hasVideo: f.vcodec && f.vcodec !== 'none'
-        // }));
-        const simplifiedFormats = info.formats
+        mplifiedFormats = info.formats
             .filter(f => f.ext === 'mp4')
             .map(f => ({
                 id: f.format_id,

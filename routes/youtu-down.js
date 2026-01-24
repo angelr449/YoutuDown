@@ -15,6 +15,11 @@ router.get('/info', [
 ],infoVideo);
 
 
-router.post('/download', downloadVideo);
+router.post('/download', [
+    check('outputPath', 'outputPath is required').not().isEmpty(),
+    check('filename', 'filename is required').not().isEmpty(),
+    check('infoId', 'infoId is required').not().isEmpty(),
+    check('formatId', 'formatId is required').not().isEmpty()],
+    downloadVideo);
 
 module.exports = router;

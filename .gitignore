@@ -3,3 +3,6 @@ node_modules/
 path/
 respaldo.js
 videoInfo.json
+
+tmp/*
+!tmp/*.md

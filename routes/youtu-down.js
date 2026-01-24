@@ -15,6 +15,6 @@ router.post('/info', [
 ],infoVideo);
 
 
-router.get('/download', downloadVideo);
+router.post('/download', downloadVideo);
 
 module.exports = router;

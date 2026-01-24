@@ -15,7 +15,7 @@ class Server {
         
 
         this.paths = {
-            youDown: '/api/youDown'
+            youtuDown: '/api/youtuDown'
 
             
         }

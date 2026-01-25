@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-// const fileUpload = require('express-fileupload')
+
 
 // const { socketController } = require('../sockets/controller');
 
@@ -16,7 +16,7 @@ class Server {
             youtuDown: '/api/youtuDown'
         };
 
-        // Database connection
+        
 
         // Middlewares
         this.middlewares();
@@ -28,9 +28,7 @@ class Server {
         // this.sockets();
     }
 
-    // async connectDB() {
-    //     await dbConnection();
-    // }
+
 
     middlewares() {
         // Enable CORS
@@ -42,17 +40,11 @@ class Server {
         // Public directory
         this.app.use(express.static('public'));
 
-        // File upload middleware
-        // this.app.use(fileUpload({
-        //     useTempFiles: true,
-        //     tempFileDir: '/tmp/',
-        //     createParentPath: true
-        // }));
+
     }
 
     routes() {
-        // this.app.use(this.paths.videoInfo, require('../routes/video-info'));
-        // this.app.use(this.paths.videoDownload, require('../routes/video-download'));
+
         this.app.use(this.paths.youtuDown, require('../routes/youtu-down'));
     }
 

@@ -30,7 +30,7 @@ const { error } = require("console");
  * }
  */
 
-const downloadVideo = async (req, res) => {
+const downloadVideo = async (req, res) => { //TODO documentar bien esta funcion
 
     const { outputPath, filename, infoId, formatId, socketId } = req.body;
 

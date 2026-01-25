@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const {Server: SocketIO} = require('socket.io');
 
 
 const { socketController } = require('../sockets/controller');
@@ -9,7 +10,9 @@ class Server {
     constructor() {
         this.app = express();
         this.port = process.env.PORT; // Port Server, example: 8080
-        this.server = require('http').createServer(this.app); 
+        this.server = require('http').createServer(this.app);
+        this.io = new SocketIO(this.server);
+        
         
         // Paths (route)
         this.paths = {

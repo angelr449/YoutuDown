@@ -1,6 +1,32 @@
-const fs = require('fs')
-const { getInfo} = require('../helpers/youtubedl')
+const fs = require('fs');
+const crypto = require('crypto');
+const { getInfo } = require('../helpers/youtubedl');
 
+/**
+ * Express route handler to retrieve and store YouTube video information.
+ *
+ * Steps:
+ * 1. Retrieves video info from YouTube using `getInfo`.
+ * 2. Generates a unique ID for the info and stores it in a JSON file in ./tmp.
+ * 3. Simplifies available video formats (mp4) for easier selection later.
+ * 4. Returns JSON with `infoId`, `title`, `duration`, and simplified formats.
+ *
+ * @param {import('express').Request} req - Express request object.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<void>} - Resolves when response is sent.
+ *
+ * @example
+ * GET /info-video?url=https://www.youtube.com/watch?v=abc123
+ * Response:
+ * {
+ *   "infoId": "uuid-generated-id",
+ *   "title": "Video Title",
+ *   "duration": 123,
+ *   "formats": [
+ *     { "id": "22", "resolution": "720p", "hasAudio": true, "hasVideo": true }
+ *   ]
+ * }
+ */
 
 
 const infoVideo = async (req, res) => {
@@ -24,7 +50,7 @@ const infoVideo = async (req, res) => {
         // the info the we retrive can be read directly or passed to youtube-dl
 
 
-        // Fomats Map
+        // Simply formats
 
         mplifiedFormats = info.formats
             .filter(f => f.ext === 'mp4')
@@ -56,9 +82,9 @@ const infoVideo = async (req, res) => {
 
 
 
-}
+};
 
 
 module.exports = {
     infoVideo
-}
+};

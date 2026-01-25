@@ -1,5 +1,19 @@
 
 
+
+/**
+ * Middleware to validate that a request contains a valid YouTube URL.
+ *
+ * Checks:
+ * 1. The 'url' field exists in the request body.
+ * 2. The URL has a valid format.
+ * 3. The URL hostname is one of the allowed YouTube domains.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The next middleware function.
+ * @returns {import('express').Response|undefined} - Returns a 400 response with an error message if invalid; otherwise calls next().
+ */
 const validateYouTubeUrl = (req, res, next) =>{
 
      const { url } = req.body || {}; // <-- fallback

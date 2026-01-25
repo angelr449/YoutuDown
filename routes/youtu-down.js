@@ -7,6 +7,8 @@ const { requestValidation } = require('../middlewares/requestValidation');
 
 const router = Router();
 
+
+// Route to get information about the video
 router.get('/info', [
     query('url', 'URL is required').not().isEmpty(),
     validateYouTubeUrl,
@@ -14,7 +16,7 @@ router.get('/info', [
 
 ],infoVideo);
 
-
+// Route to init the download
 router.post('/download', [
     check('outputPath', 'outputPath is required').not().isEmpty(),
     check('filename', 'filename is required').not().isEmpty(),

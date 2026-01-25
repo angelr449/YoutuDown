@@ -1,5 +1,6 @@
-const { getInfo, fromInfo } = require('../helpers/youtubedl')
 const fs = require('fs')
+const { getInfo} = require('../helpers/youtubedl')
+
 
 
 const infoVideo = async (req, res) => {

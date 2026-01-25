@@ -8,12 +8,12 @@ class Server {
 
     constructor() {
         this.app = express();
-        this.port = process.env.PORT;
-        this.server = require('http').createServer(this.app);
-        this.io = require('socket.io')(this.server)
-
+        this.port = process.env.PORT; // Port Server, example: 8080
+        this.server = require('http').createServer(this.app); 
+        
+        // Paths (route)
         this.paths = {
-            youtuDown: '/api/youtuDown'
+            youtuDown: '/api/youtuDown' // This like: localhost:8080/api/youtuDown
         };
 
         

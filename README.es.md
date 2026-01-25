@@ -147,7 +147,7 @@ Para más detalles y ejemplos de uso, consulta la documentación de Postman:
 
 ```bash
 # Clonar el repositorio
-git clone [URL_DEL_REPOSITORIO]
+git clone [https://github.com/angelr449/YoutuDown.git]
 
 # Instalar dependencias
 npm install

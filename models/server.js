@@ -35,6 +35,13 @@ class Server {
         // Body parsing (JSON)
         this.app.use(express.json());
 
+        // Sockets
+
+        this.app.use((req, res, next)=>{
+            req.io = this.io;
+            next();
+        })
+
         // Public directory
         this.app.use(express.static('public'));
 

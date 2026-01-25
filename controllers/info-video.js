@@ -44,7 +44,7 @@ const infoVideo = async (req, res) => {
             infoId,
             title: info.title,
             duration: info.duration,
-            formats: simplifiedFormats
+            formats: mplifiedFormats
         })
     } catch (err) {
 

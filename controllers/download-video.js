@@ -1,4 +1,4 @@
-
+const fs = require('fs');
 const path = require("path");
 const { downloadWithProgress } = require("../helpers/progress-bar");
 
@@ -31,22 +31,30 @@ const { downloadWithProgress } = require("../helpers/progress-bar");
 const downloadVideo = async (req, res) => {
 
     const { outputPath, filename, infoId, formatId} = req.body;
+    const infoPath = `./tmp/${infoId}.json`;
+    const info = JSON.parse(fs.readFileSync(infoPath, "utf-8"));
+    
+
+    // Clean title
+    const safeTitle = info.title 
+        .replace(/[<>:"/\\|?*]/g, '')
+        .trim();
 
     // Final Path
-    const finalName = filename || `video_${Date.now()}.mp4`;
+    const finalName = filename || `${safeTitle}.mp4`;
     const downloadUserPath = path.join(outputPath, finalName);
 
 
     // Fast answer
-    res.json({ messege: "download video funcionando" });
+    res.json({ messege: "download video funcionando",  });
 
     
 
     // Start download and progress-bar
 
-    await downloadWithProgress(`./tmp/${infoId}.json`, {
+    await downloadWithProgress(infoPath, {
         format: `${formatId}`,
-        output: `${downloadUserPath}`
+        output: {downloadUserPath}
     });
 
 

@@ -9,6 +9,10 @@ const youtubedl = require('youtube-dl-exec') //library to download videos
 const getInfo = (url, flags = {}) => {
     return youtubedl(url, {
         dumpSingleJson: true,
+        skipDownload: true,
+        userAgent: 'Mozilla/5.0',
+        retries: 5,
+        socketTimeout: 30,
         ...flags
     })
 }

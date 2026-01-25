@@ -41,6 +41,7 @@ const infoVideo = async (req, res) => {
         const info = await getInfo(url)
         const infoId = crypto.randomUUID();
         const infoPath = `./tmp/${infoId}.json`;
+        const formats = Array.isArray(info.formats) ? info.formats : [];
 
 
         // write the info to a file for youtube-dl to read it
@@ -48,6 +49,22 @@ const infoVideo = async (req, res) => {
 
 
         // the info the we retrive can be read directly or passed to youtube-dl
+
+        if (Array.isArray(info.entries)) {
+            const videos = info.entries.map(video => ({
+                id: video.id,
+                title: video.title,
+                duration: video.duration
+            }));
+
+            return res.json({
+                infoId,
+                type: 'playlist',
+                count: videos.length,
+                videos
+            });
+        }
+
 
 
         // Simply formats

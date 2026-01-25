@@ -1,6 +1,6 @@
 const youtubedl = require('youtube-dl-exec');
 
-const downloadWithProgress = async (infoPath, options, onProgress) => {
+const downloadWithProgress = async (infoPath, options) => {
     const subprocess = youtubedl.exec('', {
         loadInfoJson: infoPath,
         ...options
@@ -13,7 +13,7 @@ const downloadWithProgress = async (infoPath, options, onProgress) => {
         if (output.includes('[download]')) {
             // Example:
             // [download]  42.3% of 10.23MiB at 1.23MiB/s ETA 00:04
-            onProgress(output.trim());
+            console.log(output.trim())
         }
     });
 

@@ -1,36 +1,57 @@
+// =========================
+// External dependencies
+// =========================
 const youtubedl = require('youtube-dl-exec');
-/**
- * Downloads a YouTube video using information from a JSON file and logs progress to the console.
- *
- * @param {string} infoPath - Path to the JSON file with YouTube video information.
- * @param {Object} [options={}] - Additional options to pass to youtube-dl-exec.
- * @returns {import('child_process').ChildProcess} - The child process running youtube-dl, allowing further event handling if needed.
- *
- * @example
- * const subprocess = downloadWithProgress('videoInfo.json', { output: 'video.mp4' });
- * subprocess.on('close', () => console.log('Download finished'));
- */
-const downloadWithProgress = async (infoPath, options) => {
-    const subprocess = youtubedl.exec('', {
-        loadInfoJson: infoPath,
-        ...options
-    });
+// Node.js wrapper for yt-dlp / youtube-dl
 
+/**
+ * Executes yt-dlp and prints download progress to the console.
+ *
+ * Accepts either:
+ * - A direct video URL
+ * - A path to a previously generated yt-dlp JSON info file
+ *
+ * @param {string} input - Video URL or path to info JSON
+ * @param {Object} options - yt-dlp execution options
+ * @returns {ChildProcess} yt-dlp subprocess
+ */
+const downloadWithProgress = async (input, options = {}) => {
+
+    // Detect whether input is a URL or a local JSON file
+    const isUrl = /^https?:\/\//.test(input);
+
+    // Spawn yt-dlp subprocess
+    const subprocess = isUrl
+        ? youtubedl.exec(input, {
+            jsRuntimes: 'node', // Forces yt-dlp to use Node runtime
+            ...options
+        })
+        : youtubedl.exec('', {
+            loadInfoJson: input, // Load metadata from JSON instead of fetching
+            jsRuntimes: 'node',
+            ...options
+        });
+
+    // =========================
+    // STDOUT: progress output
+    // =========================
     subprocess.stdout.on('data', data => {
         const output = data.toString();
 
-
+        // Filter and print only download progress lines
         if (output.includes('[download]')) {
-            // Example:
-            // [download]  42.3% of 10.23MiB at 1.23MiB/s ETA 00:04
-            console.log(output.trim())
+            console.log(output.trim());
         }
+    });
+
+    // =========================
+    // STDERR: errors and warnings
+    // =========================
+    subprocess.stderr.on('data', data => {
+        console.error(data.toString().trim());
     });
 
     return subprocess;
 };
 
-
-module.exports = {
-    downloadWithProgress
-}
+module.exports = { downloadWithProgress };

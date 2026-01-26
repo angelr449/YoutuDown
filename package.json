@@ -11,11 +11,12 @@
   "license": "ISC",
   "dependencies": {
     "@ybd-project/ytdl-core": "^6.0.8",
+    "archiver": "^7.0.1",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
     "socket.io": "^4.8.3",
-    "youtube-dl-exec": "^3.0.29"
+    "youtube-dl-exec": "^3.0.30"
   }
 }

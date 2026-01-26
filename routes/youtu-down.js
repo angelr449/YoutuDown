@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { check, query } = require('express-validator');
 const { infoVideo } = require('../controllers');
-const { downloadVideo } = require('../controllers/download-video');
+const { downloadVideo, streamVideo } = require('../controllers/download-video');
 const { validateYouTubeUrl } = require('../middlewares');
 const { requestValidation } = require('../middlewares/requestValidation');
 
@@ -17,12 +17,11 @@ router.get('/info', [
 ],infoVideo);
 
 // Route to init the download
-router.post('/download', [
-    check('outputPath', 'outputPath is required').not().isEmpty(),
-    check('filename', 'filename is required').not().isEmpty(),
-    check('infoId', 'infoId is required').not().isEmpty(),
-    check('formatId', 'formatId is required').not().isEmpty(),
+router.get('/download', [
+    // check('outputPath', 'outputPath is required').not().isEmpty(),
+    // check('infoId', 'infoId is required').not().isEmpty(),
+    // check('formatId', 'formatId is required').not().isEmpty(),
     requestValidation],
-    downloadVideo);
+    streamVideo);
 
 module.exports = router;

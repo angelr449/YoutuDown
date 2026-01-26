@@ -19,7 +19,9 @@ const youtubedl = require('youtube-dl-exec')
  *   Parsed metadata JSON returned by yt-dlp
  */
 const getInfo = (url, flags = {}) => {
+    const isPlaylist = url.includes('playlist') || url.includes('list=');
     return youtubedl(url, {
+
         /* Core behavior */
         dumpSingleJson: true,   // Return metadata as JSON
         skipDownload: true,    // Do NOT download media
@@ -36,6 +38,8 @@ const getInfo = (url, flags = {}) => {
         userAgent:
             'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' +
             '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+
+        ...(isPlaylist ? { flatPlaylist: true } : {}),
 
         ...flags
     })

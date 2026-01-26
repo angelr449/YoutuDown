@@ -2,34 +2,49 @@
 // Core Node.js modules
 // =========================
 const fs = require('fs');          // File system: read and validate files
-const path = require('path');      // Safe path handling (cross-platform)
+const path = require('path');      // Safe, cross-platform path handling
 
 // =========================
 // Custom helpers
 // =========================
 const { downloadWithProgress } = require('../helpers/progress-bar');
-// Helper that runs yt-dlp and reports download progress
+// Helper that executes yt-dlp and reports download progress in real time
 
 /**
- * Sanitizes file names to make them safe for the filesystem.
- * Removes invalid characters and trims whitespace.
+ * Sanitizes a file name to make it safe for the filesystem.
+ * Removes invalid characters and trims extra whitespace.
  *
- * @param {string} name - Original file name
- * @returns {string} Safe file name
+ * Why this exists:
+ * - Prevents filesystem errors
+ * - Avoids OS-specific invalid characters
+ *
+ * @param {string} name
+ *   Original file name.
+ *
+ * @returns {string}
+ *   Sanitized, filesystem-safe file name.
  */
 const sanitize = (name) =>
     name.replace(/[<>:"/\\|?*]/g, '').trim();
 
 /**
- * HTTP controller to download videos or playlists using
- * previously generated yt-dlp JSON metadata.
+ * HTTP controller responsible for downloading videos or playlists
+ * using previously generated yt-dlp metadata JSON files.
  *
- * Supports:
+ * Supported cases:
  * - Single video download
- * - Playlist download (sequential)
+ * - Playlist download (processed sequentially)
  *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
+ * Design notes:
+ * - Metadata extraction and downloading are intentionally separated
+ * - Playlist downloads are sequential to avoid rate limits or bans
+ * - The HTTP response is sent immediately; downloads continue asynchronously
+ *
+ * @param {Object} req
+ *   Express request object.
+ *
+ * @param {Object} res
+ *   Express response object.
  */
 const downloadVideo = async (req, res) => {
     try {
@@ -44,7 +59,7 @@ const downloadVideo = async (req, res) => {
             });
         }
 
-        // Path to the yt-dlp JSON metadata
+        // Path to the yt-dlp metadata JSON file
         const infoPath = `./tmp/${infoId}.json`;
 
         if (!fs.existsSync(infoPath)) {
@@ -53,26 +68,26 @@ const downloadVideo = async (req, res) => {
             });
         }
 
-        // Parse yt-dlp metadata
+        // Load and parse yt-dlp metadata
         const info = JSON.parse(
             fs.readFileSync(infoPath, 'utf-8')
         );
 
         /**
          * =========================
-         * CASE: PLAYLIST
+         * CASE: PLAYLIST DOWNLOAD
          * =========================
          */
         if (info._type === 'playlist' && Array.isArray(info.entries)) {
 
             // Respond immediately to the client
-            // (downloads continue in the background)
+            // Downloads continue in the background
             res.json({
                 message: 'Playlist download started',
                 count: info.entries.length
             });
 
-            // Sequential download to avoid rate limits or bans
+            // Sequential processing to minimize detection and rate limiting
             for (const entry of info.entries) {
 
                 // Generate a filesystem-safe title
@@ -80,13 +95,13 @@ const downloadVideo = async (req, res) => {
                     entry.title || entry.id
                 );
 
-                // Final output path
+                // Final output path template
                 const outputFile = path.join(
                     outputPath,
                     `${safeTitle}.%(ext)s`
                 );
 
-                // Actual YouTube video URL (NOT the JSON file)
+                // Actual YouTube video URL (not the metadata JSON)
                 const videoUrl =
                     `https://www.youtube.com/watch?v=${entry.id}`;
 
@@ -105,7 +120,7 @@ const downloadVideo = async (req, res) => {
 
         /**
          * =========================
-         * CASE: SINGLE VIDEO
+         * CASE: SINGLE VIDEO DOWNLOAD
          * =========================
          */
         const safeTitle = sanitize(info.title);
@@ -121,7 +136,7 @@ const downloadVideo = async (req, res) => {
             path: outputFile
         });
 
-        // For single videos, the JSON file can be used directly
+        // For single videos, yt-dlp can consume the metadata JSON directly
         await downloadWithProgress(
             infoPath,
             {
@@ -143,7 +158,3 @@ const downloadVideo = async (req, res) => {
 
 // Export controller
 module.exports = { downloadVideo };
-
-
-
-

@@ -44,6 +44,36 @@ const getInfo = (url, flags = {}) => {
         ...flags
     })
 }
+const getInfoForStream= (url, { forDownload = false, ...flags } = {}) => {
+    const isPlaylist = url.includes('list=');
+
+    return youtubedl(url, {
+        dumpSingleJson: true,
+        skipDownload: true,
+
+        /* Anti-block */
+        sleepInterval: 3,
+        maxSleepInterval: 8,
+        retries: 2,
+        fragmentRetries: 2,
+        socketTimeout: 30,
+        concurrentFragments: 1,
+
+        /* Browser fingerprint */
+        userAgent:
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' +
+            '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+
+        /**
+         * flatPlaylist:
+         *  - true  → solo IDs (rápido, UI)
+         *  - false → URLs reales (necesario para descarga)
+         */
+        ...(isPlaylist && !forDownload ? { flatPlaylist: true } : {}),
+
+        ...flags
+    });
+};
 
 /**
  * Downloads a YouTube video using a previously saved metadata JSON file.
@@ -78,5 +108,6 @@ const fromInfo = (infoFile, flags = {}) => {
 
 module.exports = {
     getInfo,
+    getInfoForStream,
     fromInfo
 }

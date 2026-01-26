@@ -16,7 +16,7 @@
  */
 const validateYouTubeUrl = (req, res, next) =>{
 
-     const { url } = req.body || {}; // <-- fallback
+     const { url } = req.query || {}; // <-- fallback
 
 
     // 1. Exists

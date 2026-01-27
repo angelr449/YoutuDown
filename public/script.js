@@ -2,7 +2,7 @@
 // Configuration
 // ===========================
 
-const API_BASE_URL = 'https://youtudown-k4wd.onrender.com/api/youtuDown';
+const API_BASE_URL = '/api/youtuDown';
 
 // ===========================
 // State Management

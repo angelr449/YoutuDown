@@ -1,19 +1,18 @@
 # YouTuDown API
 
-## Versión v0.1.0-Beta
+## Versión v0.2.0-Beta
 
-Backend para descargar videos de YouTube individualmente. Esta versión permite obtener información detallada de videos y descargarlos en diferentes calidades.
-
-> **Nota:** Las futuras versiones incluirán soporte para playlists y WebSockets para mostrar barras de progreso en tiempo real.
+Backend para descargar videos individuales de YouTube y listas de reproducción. Esta versión te permite obtener información detallada de los videos, descargarlos en diferentes calidades y soporta tanto descargas del lado del servidor como del cliente.
 
 ## Características
 
 - ✅ Descarga de videos individuales
-- ✅ Extracción de información del video (resolución, duración, formatos disponibles)
-- ⏳ Soporte para playlists (próximamente)
-- ⏳ WebSockets para barra de progreso (próximamente)
+- ✅ Descarga de listas de reproducción
+- ✅ Descargas del lado del servidor (guardar en el servidor)
+- ✅ Descargas del lado del cliente (transmitir al usuario)
+- ✅ Extracción de información de videos (resolución, duración, formatos disponibles)
 
-## API Endpoints
+## Endpoints de la API
 
 ### Ruta Base
 ```
@@ -26,12 +25,12 @@ http://localhost:8080/api/youtuDown
 
 **Endpoint:** `GET /api/youtuDown/info`
 
-**Descripción:** Extrae la información del video mediante la URL proporcionada.
+**Descripción:** Extrae la información del video utilizando la URL proporcionada.
 
-**Query Parameters:**
+**Parámetros de Consulta:**
 - `url` - URL del video de YouTube
 
-**Respuesta de ejemplo:**
+**Ejemplo de Respuesta:**
 ```json
 {
     "infoId": "303d77d2-e9e8-4f72-a8ed-429c51d8940d",
@@ -66,7 +65,7 @@ http://localhost:8080/api/youtuDown
 }
 ```
 
-**Campos de respuesta:**
+**Campos de Respuesta:**
 - `infoId`: ID único del archivo temporal que contiene la información del video
 - `title`: Título del video
 - `duration`: Duración en segundos
@@ -76,28 +75,28 @@ http://localhost:8080/api/youtuDown
   - `hasAudio`: Indica si incluye audio
   - `hasVideo`: Indica si incluye video
 
-> **Importante:** El `infoId` es necesario para la descarga. La información se guarda temporalmente en un archivo `.json`.
+> **Importante:** El `infoId` es requerido para la descarga. La información se guarda temporalmente en un archivo `.json`.
 
 ---
 
-### 2. Descargar Video
+### 2. Descargar Video (Lado del Servidor)
 
 **Endpoint:** `POST /api/youtuDown/download`
 
-**Descripción:** Descarga el video en el formato y ubicación especificados.
+**Descripción:** Descarga el video en el servidor en el formato y ubicación especificados.
 
 **Body (JSON):**
 ```json
 {
-  "outputPath": "/home/angelrios/Escritorio",
-  "filename": "betas.mp4",
+  "outputPath": "/home/usuario/Videos",
+  "filename": "mi-video.mp4",
   "infoId": "303d77d2-e9e8-4f72-a8ed-429c51d8940d",
   "formatId": "18"
 }
 ```
 
 **Parámetros:**
-- `outputPath`: Ruta donde se guardará el video
+- `outputPath`: Ruta donde se guardará el video en el servidor
 - `filename`: Nombre del archivo (opcional)
 - `infoId`: ID obtenido de la petición `/info`
 - `formatId`: ID del formato de calidad deseado
@@ -105,13 +104,102 @@ http://localhost:8080/api/youtuDown
 **Respuesta:**
 ```json
 {
-    "messege": "download video funcionando"
+    "message": "Video descargado exitosamente en el servidor"
+}
+```
+
+---
+
+### 3. Descargar Video (Stream al Cliente)
+
+**Endpoint:** `POST /api/youtuDown/download-stream`
+
+**Descripción:** Transmite el video directamente al cliente para descargarlo en el navegador del usuario.
+
+**Query Params:**
+- `infoId` - ID obtenido de la petición `/info`
+- `formatId` - ID del formato de calidad deseado
+
+**Ejemplo:**
+```
+POST /api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&formatId=96
+```
+
+**Respuesta:**
+- Stream binario del archivo de video
+- Content-Type: `video/mp4` o `application/octet-stream`
+- Header Content-Disposition con el nombre del archivo
+
+---
+
+### 4. Obtener Información de la Lista de Reproducción
+
+**Endpoint:** `GET /api/youtuDown/playlist/info`
+
+**Descripción:** Extrae información de todos los videos en una lista de reproducción de YouTube.
+
+**Parámetros de Consulta:**
+- `url` - URL de la lista de reproducción de YouTube
+
+**Ejemplo de Respuesta:**
+```json
+{
+    "playlistId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "playlistTitle": "Mis Videos Favoritos",
+    "videoCount": 15,
+    "videos": [
+        {
+            "infoId": "video-1-id",
+            "title": "Primer Video",
+            "duration": 180,
+            "formats": [...]
+        },
+        {
+            "infoId": "video-2-id",
+            "title": "Segundo Video",
+            "duration": 240,
+            "formats": [...]
+        }
+    ]
+}
+```
+
+---
+
+### 5. Descargar Lista de Reproducción (Lado del Servidor)
+
+**Endpoint:** `POST /api/youtuDown/playlist/download`
+
+**Descripción:** Descarga todos los videos de una lista de reproducción en el servidor.
+
+**Body (JSON):**
+```json
+{
+  "playlistId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "outputPath": "/home/usuario/Videos/MiPlaylist",
+  "formatId": "18"
+}
+```
+
+**Parámetros:**
+- `playlistId`: ID obtenido de la petición `/playlist/info`
+- `outputPath`: Directorio donde se guardarán los videos en el servidor
+- `formatId`: ID del formato de calidad deseado para todos los videos
+
+**Respuesta:**
+```json
+{
+    "message": "Descarga de playlist iniciada",
+    "totalVideos": 15,
+    "downloadedVideos": 15
 }
 ```
 
 ---
 
 ## Flujo de Uso
+
+### Descargar un Video Individual (Lado del Cliente)
 
 1. **Obtener información del video:**
    ```bash
@@ -122,24 +210,39 @@ http://localhost:8080/api/youtuDown
 
 3. **Seleccionar el `formatId` deseado de los formatos disponibles**
 
-4. **Descargar el video:**
+4. **Descargar en stream al cliente:**
    ```bash
-   POST http://localhost:8080/api/youtuDown/download
+   POST http://localhost:8080/api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&formatId=96
+   ```
+
+### Descargar una Lista de Reproducción (Lado del Servidor)
+
+1. **Obtener información de la playlist:**
+   ```bash
+   GET http://localhost:8080/api/youtuDown/playlist/info?url=https://youtube.com/playlist?list=...
+   ```
+
+2. **Guardar el `playlistId` de la respuesta**
+
+3. **Descargar la playlist completa:**
+   ```bash
+   POST http://localhost:8080/api/youtuDown/playlist/download
    Content-Type: application/json
 
    {
+     "playlistId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
      "outputPath": "/ruta/destino",
-     "filename": "mi-video.mp4",
-     "infoId": "303d77d2-e9e8-4f72-a8ed-429c51d8940d",
-     "formatId": "96"
+     "formatId": "18"
    }
    ```
+
+---
 
 ## Documentación Completa
 
 Para más detalles y ejemplos de uso, consulta la documentación de Postman:
 
-📄 [Documentación en Postman](https://documenter.getpostman.com/view/47022693/2sBXVkCqEP)
+📄 [Documentación Postman](https://documenter.getpostman.com/view/47022693/2sBXVmeoPz)
 
 ---
 
@@ -147,7 +250,7 @@ Para más detalles y ejemplos de uso, consulta la documentación de Postman:
 
 ```bash
 # Clonar el repositorio
-git clone [https://github.com/angelr449/YoutuDown.git]
+git clone https://github.com/angelr449/YoutuDown.git
 
 # Instalar dependencias
 npm install
@@ -162,31 +265,29 @@ El servidor se ejecutará en `http://localhost:8080`
 
 ## Licencia
 
-MIT License
+Licencia MIT
 
 Copyright (c) 2026 angel_r
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Por la presente se concede permiso, libre de cargos, a cualquier persona que obtenga una copia
+de este software y de los archivos de documentación asociados (el "Software"), a utilizar
+el Software sin restricción, incluyendo sin limitación los derechos a usar, copiar, modificar,
+fusionar, publicar, distribuir, sublicenciar, y/o vender copias del Software, y a permitir
+a las personas a las que se les proporcione el Software a hacer lo mismo, sujeto a las
+siguientes condiciones:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+El aviso de copyright anterior y este aviso de permiso se incluirán en todas las copias
+o partes sustanciales del Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
+EL SOFTWARE SE PROPORCIONA "COMO ESTÁ", SIN GARANTÍA DE NINGÚN TIPO, EXPRESA O IMPLÍCITA,
+INCLUYENDO PERO NO LIMITADO A GARANTÍAS DE COMERCIALIZACIÓN, IDONEIDAD PARA UN PROPÓSITO
+PARTICULAR E INCUMPLIMIENTO. EN NINGÚN CASO LOS AUTORES O PROPIETARIOS DE DERECHOS DE AUTOR
+SERÁN RESPONSABLES DE NINGUNA RECLAMACIÓN, DAÑOS U OTRAS RESPONSABILIDADES, YA SEA EN UNA
+ACCIÓN DE CONTRATO, AGRAVIO O CUALQUIER OTRO MOTIVO, DERIVADAS DE, FUERA DE O EN CONEXIÓN
+CON EL SOFTWARE O SU USO U OTRO TIPO DE ACCIONES EN EL SOFTWARE.
 
 ---
 
 ## Contribuciones
 
-Las contribuciones son bienvenidas. Por favor, abre un issue o pull request para sugerencias y mejoras.
+¡Las contribuciones son bienvenidas! Por favor abre un issue o pull request para sugerencias y mejoras.

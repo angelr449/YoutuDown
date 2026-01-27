@@ -1,17 +1,16 @@
 # YouTuDown API
 
-## Version v0.1.0-Beta
+## Version v0.2.0-Beta
 
-Backend for downloading individual YouTube videos. This version allows you to retrieve detailed video information and download them in different qualities.
-
-> **Note:** Future versions will include playlist support and WebSockets for real-time progress bars.
+Backend for downloading individual YouTube videos and playlists. This version allows you to retrieve detailed video information, download them in different qualities, and supports both server-side and client-side downloads.
 
 ## Features
 
 - ✅ Individual video downloads
+- ✅ Playlist downloads
+- ✅ Server-side downloads (save to server)
+- ✅ Client-side downloads (stream to user)
 - ✅ Video information extraction (resolution, duration, available formats)
-- ⏳ Playlist support (coming soon)
-- ⏳ WebSockets for progress bar (coming soon)
 
 ## API Endpoints
 
@@ -80,24 +79,24 @@ http://localhost:8080/api/youtuDown
 
 ---
 
-### 2. Download Video
+### 2. Download Video (Server-side)
 
 **Endpoint:** `POST /api/youtuDown/download`
 
-**Description:** Downloads the video in the specified format and location.
+**Description:** Downloads the video to the server in the specified format and location.
 
 **Body (JSON):**
 ```json
 {
-  "outputPath": "/home/angelrios/Escritorio",
-  "filename": "betas.mp4",
+  "outputPath": "/home/user/Videos",
+  "filename": "my-video.mp4",
   "infoId": "303d77d2-e9e8-4f72-a8ed-429c51d8940d",
   "formatId": "18"
 }
 ```
 
 **Parameters:**
-- `outputPath`: Path where the video will be saved
+- `outputPath`: Path where the video will be saved on the server
 - `filename`: File name (optional)
 - `infoId`: ID obtained from the `/info` request
 - `formatId`: Desired quality format ID
@@ -105,13 +104,102 @@ http://localhost:8080/api/youtuDown
 **Response:**
 ```json
 {
-    "messege": "download video funcionando"
+    "message": "Video downloaded successfully to server"
+}
+```
+
+---
+
+### 3. Download Video (Client-side Stream)
+
+**Endpoint:** `POST /api/youtuDown/download-stream`
+
+**Description:** Streams the video directly to the client for download in the user's browser.
+
+**Query Params:**
+- `infoId` - ID obtained from the `/info` request
+- `formatId` - Desired quality format ID
+
+**Example:**
+```
+POST /api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&formatId=96
+```
+
+**Response:**
+- Binary stream of the video file
+- Content-Type: `video/mp4` or `application/octet-stream`
+- Content-Disposition header with the filename
+
+---
+
+### 4. Get Playlist Information
+
+**Endpoint:** `GET /api/youtuDown/playlist/info`
+
+**Description:** Extracts information from all videos in a YouTube playlist.
+
+**Query Parameters:**
+- `url` - YouTube playlist URL
+
+**Example Response:**
+```json
+{
+    "playlistId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "playlistTitle": "My Favorite Videos",
+    "videoCount": 15,
+    "videos": [
+        {
+            "infoId": "video-1-id",
+            "title": "First Video",
+            "duration": 180,
+            "formats": [...]
+        },
+        {
+            "infoId": "video-2-id",
+            "title": "Second Video",
+            "duration": 240,
+            "formats": [...]
+        }
+    ]
+}
+```
+
+---
+
+### 5. Download Playlist (Server-side)
+
+**Endpoint:** `POST /api/youtuDown/playlist/download`
+
+**Description:** Downloads all videos from a playlist to the server.
+
+**Body (JSON):**
+```json
+{
+  "playlistId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "outputPath": "/home/user/Videos/MyPlaylist",
+  "formatId": "18"
+}
+```
+
+**Parameters:**
+- `playlistId`: ID obtained from the `/playlist/info` request
+- `outputPath`: Directory where videos will be saved on the server
+- `formatId`: Desired quality format ID for all videos
+
+**Response:**
+```json
+{
+    "message": "Playlist download started",
+    "totalVideos": 15,
+    "downloadedVideos": 15
 }
 ```
 
 ---
 
 ## Usage Flow
+
+### Downloading a Single Video (Client-side)
 
 1. **Get video information:**
    ```bash
@@ -122,24 +210,39 @@ http://localhost:8080/api/youtuDown
 
 3. **Select the desired `formatId` from available formats**
 
-4. **Download the video:**
+4. **Stream download to client:**
    ```bash
-   POST http://localhost:8080/api/youtuDown/download
+   POST http://localhost:8080/api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&formatId=96
+   ```
+
+### Downloading a Playlist (Server-side)
+
+1. **Get playlist information:**
+   ```bash
+   GET http://localhost:8080/api/youtuDown/playlist/info?url=https://youtube.com/playlist?list=...
+   ```
+
+2. **Save the `playlistId` from the response**
+
+3. **Download entire playlist:**
+   ```bash
+   POST http://localhost:8080/api/youtuDown/playlist/download
    Content-Type: application/json
 
    {
+     "playlistId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
      "outputPath": "/destination/path",
-     "filename": "my-video.mp4",
-     "infoId": "303d77d2-e9e8-4f72-a8ed-429c51d8940d",
-     "formatId": "96"
+     "formatId": "18"
    }
    ```
+
+---
 
 ## Full Documentation
 
 For more details and usage examples, check the Postman documentation:
 
-📄 [Postman Documentation](https://documenter.getpostman.com/view/47022693/2sBXVkCqEP)
+📄 [Postman Documentation](https://documenter.getpostman.com/view/47022693/2sBXVmeoPz)
 
 ---
 
@@ -147,7 +250,7 @@ For more details and usage examples, check the Postman documentation:
 
 ```bash
 # Clone the repository
-git clone [https://github.com/angelr449/YoutuDown.git]
+git clone https://github.com/angelr449/YoutuDown.git
 
 # Install dependencies
 npm install

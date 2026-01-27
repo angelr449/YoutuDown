@@ -3,44 +3,116 @@ const crypto = require('crypto');
 const { getInfo } = require('../helpers/youtubedl');
 
 /**
- * Simplifies yt-dlp format objects.
- * 
- * Purpose:
- * yt-dlp returns a very large list of formats with a lot of noise.
- * This function filters only MP4 formats and extracts the fields
- * that are relevant for a download UI or API consumer.
+ * simplifyFormats
+ * ----------------
+ * Reduces yt-dlp raw format objects into a clean, predictable structure.
+ *
+ * Background:
+ * yt-dlp returns dozens (sometimes hundreds) of formats per video.
+ * Most of them are redundant, incomplete, or irrelevant for a UI.
+ *
+ * This function:
+ * - Filters out unusable formats
+ * - Keeps only formats with a valid URL
+ * - Detects audio-only vs video formats
+ * - Normalizes quality and resolution fields
+ * - Sorts formats by usefulness (best first)
+ *
+ * Design goal:
+ * Provide frontend-friendly data without exposing yt-dlp internals.
  *
  * @param {Array<Object>} formats - Raw formats array from yt-dlp
- * @returns {Array<Object>} Simplified formats
+ * @returns {Array<Object>} Simplified and sorted formats
  */
 const simplifyFormats = (formats = []) => {
+    // Defensive programming: yt-dlp should return an array, but never trust input
     if (!Array.isArray(formats)) return [];
 
     return formats
-        
-        .map(f => ({
-            id: f.format_id,
-            resolution: f.format_note || `${f.height || 0}p`,
-            hasAudio: f.acodec !== 'none',
-            hasVideo: f.vcodec !== 'none'
-        }));
+        /**
+         * Keep only formats that actually have a downloadable source.
+         * Some formats only describe manifests or metadata.
+         */
+        .filter(f => f.url || f.manifest_url)
+
+        /**
+         * Keep formats that:
+         * - Have a valid resolution (video)
+         * - OR are audio-only formats
+         */
+        .filter(f => {
+            const hasValidResolution = f.height > 0 || f.format_note;
+            const isAudioOnly = f.acodec !== 'none' && f.vcodec === 'none';
+            return hasValidResolution || isAudioOnly;
+        })
+
+        /**
+         * Normalize each format into a compact object
+         */
+        .map(f => {
+            let quality = 'Unknown';
+
+            /**
+             * yt-dlp provides multiple ways to describe quality.
+             * We prioritize human-readable labels when available.
+             */
+            if (f.format_note) {
+                quality = f.format_note;
+            } else if (f.height) {
+                quality = `${f.height}p`;
+            } else if (f.acodec !== 'none' && f.vcodec === 'none') {
+                quality = 'Audio Only';
+            }
+
+            return {
+                id: f.format_id,
+                quality,
+                resolution: quality, // Backward compatibility with older frontend
+                hasAudio: f.acodec !== 'none',
+                hasVideo: f.vcodec !== 'none',
+                ext: f.ext || 'mp4',
+                filesize: f.filesize || f.filesize_approx,
+                fps: f.fps,
+                width: f.width,
+                height: f.height
+            };
+        })
+
+        /**
+         * Sorting strategy:
+         * 1) Prefer formats that include both audio and video
+         * 2) Then sort by resolution (descending)
+         */
+        .sort((a, b) => {
+            const aFull = a.hasAudio && a.hasVideo;
+            const bFull = b.hasAudio && b.hasVideo;
+
+            if (aFull && !bFull) return -1;
+            if (!aFull && bFull) return 1;
+
+            return (b.height || 0) - (a.height || 0);
+        });
 };
 
 /**
- * Express route handler to retrieve YouTube video or playlist information.
+ * infoVideo
+ * ----------
+ * Express route handler that retrieves metadata for:
+ * - A single YouTube video
+ * - OR a YouTube playlist
  *
- * Behavior:
- * - If the URL points to a SINGLE VIDEO:
- *   - Returns full format information (mp4 only).
+ * Important behavior difference:
  *
- * - If the URL points to a PLAYLIST:
- *   - yt-dlp only returns lightweight metadata for entries.
- *   - Formats are NOT included at playlist level.
- *   - To retrieve formats, each video must be queried individually.
+ * SINGLE VIDEO:
+ * - yt-dlp already returns full format information
+ * - One yt-dlp call is sufficient
  *
- * Design note:
- * This approach is intentionally slower for playlists but guarantees
- * accurate and complete format information.
+ * PLAYLIST:
+ * - yt-dlp returns only lightweight metadata for each entry
+ * - Format information is NOT included
+ * - Each video must be queried individually
+ *
+ * This is slower, but guarantees accurate formats.
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
@@ -48,28 +120,33 @@ const simplifyFormats = (formats = []) => {
 const infoVideo = async (req, res) => {
     const { url } = req.query;
 
-    // Validate input
+    /**
+     * Basic input validation
+     */
     if (!url) {
         return res.status(400).json({ error: 'URL is required' });
     }
 
     try {
         /**
-         * Initial yt-dlp call.
-         * This may return either:
+         * First yt-dlp execution.
+         * Depending on the URL, this may return:
          * - A video object
-         * - A playlist object with lightweight entries
+         * - A playlist object with entries
          */
         const info = await getInfo(url);
 
         /**
-         * Persist raw metadata to disk.
-         * This allows:
-         * - Later reuse (downloads, debugging)
-         * - Avoiding repeated yt-dlp calls
+         * Persist raw yt-dlp output to disk.
+         *
+         * Why this exists:
+         * - Avoid re-running yt-dlp for downloads
+         * - Debugging and auditing
+         * - Traceability between requests
          */
         const infoId = crypto.randomUUID();
         const infoPath = `./tmp/${infoId}.json`;
+
         await fs.promises.writeFile(
             infoPath,
             JSON.stringify(info, null, 2)
@@ -78,9 +155,8 @@ const infoVideo = async (req, res) => {
         /**
          * PLAYLIST HANDLING
          *
-         * Important:
-         * yt-dlp does NOT include format information inside playlist entries.
-         * Therefore, each video must be queried individually to obtain formats.
+         * yt-dlp does NOT include formats at playlist level.
+         * Each entry must be resolved individually.
          */
         if (info._type === 'playlist' && Array.isArray(info.entries)) {
             const videos = [];
@@ -111,7 +187,7 @@ const infoVideo = async (req, res) => {
         /**
          * SINGLE VIDEO HANDLING
          *
-         * In this case yt-dlp already returns full format information.
+         * Formats are already present in the initial yt-dlp response.
          */
         return res.json({
             infoId,
@@ -124,10 +200,11 @@ const infoVideo = async (req, res) => {
     } catch (err) {
         /**
          * Centralized error handling.
-         * Errors here usually come from:
-         * - yt-dlp execution
-         * - network issues
-         * - invalid YouTube URLs
+         *
+         * Common causes:
+         * - Invalid YouTube URLs
+         * - yt-dlp execution errors
+         * - Network or timeout issues
          */
         return res.status(500).json({
             error: 'Failed to retrieve video information',

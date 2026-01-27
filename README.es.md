@@ -12,6 +12,17 @@ Backend para descargar videos individuales de YouTube y listas de reproducción.
 - ✅ Descargas del lado del cliente (transmitir al usuario)
 - ✅ Extracción de información de videos (resolución, duración, formatos disponibles)
 
+## Frontend / Demo
+
+> ⚠️ Nota: La carpeta `public/example-frontend` contiene un **ejemplo de frontend** generado con **IA**.  
+> Este frontend se incluyó únicamente con fines ilustrativos para probar y mostrar la funcionalidad del backend.  
+> Todo el desarrollo, lógica y commits importantes corresponden al **backend**, que es la parte principal y propia del proyecto.
+
+No se espera que este frontend represente la calidad de producción ni prácticas de desarrollo de interfaz.  
+Se recomienda revisar y reescribir el frontend si se desea una versión final o profesional.
+
+---
+
 ## Endpoints de la API
 
 ### Ruta Base

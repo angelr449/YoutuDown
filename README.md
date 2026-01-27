@@ -12,6 +12,15 @@ Backend for downloading individual YouTube videos and playlists. This version al
 - ✅ Client-side downloads (stream to user)
 - ✅ Video information extraction (resolution, duration, available formats)
 
+## Frontend / Demo
+
+> ⚠️ Note: The `public/example-frontend` folder contains a **frontend example** generated with **AI**.  
+> This frontend is included solely for demonstration purposes to showcase and test the backend functionality.  
+> All significant development, logic, and commits belong to the **backend**, which is the main focus and original part of this project.
+
+This frontend is not intended to represent production-quality code or best UI/UX practices.  
+It is recommended to review and rewrite it if a final or professional version is desired.
+
 ## API Endpoints
 
 ### Base Route

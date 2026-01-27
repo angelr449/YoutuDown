@@ -2,10 +2,24 @@ const youtubedl = require('youtube-dl-exec');
 const path = require('path');
 
 /**
- * Optional path to a cookies file for authenticated YouTube access.
- * Can be stored in your repository or as a secret in deployment environments.
+ * Absolute path to the cookies file used for authenticated YouTube access.
+ *
+ * Notes:
+ * - In local development, this file may live inside the repository.
+ * - In production environments (e.g. Render), this file SHOULD be provided
+ *   as a Secret File and will be mounted at `/etc/secrets/<filename>`.
+ *
+ * Example (Render):
+ *   /etc/secrets/cookies.txt
+ *
+ * IMPORTANT:
+ * This file contains browser session cookies and must NEVER be committed
+ * to version control.
  */
-const COOKIES_PATH = path.join(__dirname, 'cookies.txt');
+const COOKIES_PATH =
+    process.env.NODE_ENV === 'production'
+        ? '/etc/secrets/cookies.txt'
+        : path.join(__dirname, 'cookies.txt');
 
 /**
  * Fetches metadata from a YouTube video or playlist WITHOUT downloading media.
@@ -13,13 +27,23 @@ const COOKIES_PATH = path.join(__dirname, 'cookies.txt');
  * This function:
  * - Returns metadata as JSON.
  * - Forces Node.js as the JavaScript runtime for yt-dlp.
- * - Uses anti-block strategies to reduce the risk of being blocked by YouTube.
- * - Supports playlists by flattening if needed.
- * - Optionally uses cookies for authenticated access.
+ * - Applies multiple anti-blocking strategies to reduce detection.
+ * - Automatically detects playlists.
+ * - Optionally uses cookies for authenticated or restricted content.
  *
- * @param {string | URL} url - The YouTube video or playlist URL.
- * @param {Object} [flags={}] - Additional yt-dlp flags to override defaults.
- * @returns {Promise<Object>} - Parsed metadata JSON from yt-dlp.
+ * Typical use cases:
+ * - Metadata caching
+ * - Playlist inspection
+ * - Previewing content before download
+ *
+ * @param {string | URL} url
+ *   The YouTube video or playlist URL.
+ *
+ * @param {Object} [flags={}]
+ *   Optional yt-dlp flags that override the defaults.
+ *
+ * @returns {Promise<Object>}
+ *   Parsed metadata JSON returned by yt-dlp.
  */
 const getInfo = (url, flags = {}) => {
     const isPlaylist = url.includes('playlist') || url.includes('list=');
@@ -29,7 +53,7 @@ const getInfo = (url, flags = {}) => {
         skipDownload: true,
         jsRuntimes: 'node',
 
-        // Anti-block strategy
+        /* Anti-block strategy */
         sleepInterval: 3,
         maxSleepInterval: 8,
         retries: 2,
@@ -37,14 +61,15 @@ const getInfo = (url, flags = {}) => {
         socketTimeout: 30,
         concurrentFragments: 1,
 
-        // Browser fingerprint
+        /* Browser fingerprint */
         userAgent:
             'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ' +
             '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 
+        /* Flatten playlist entries unless full URLs are required */
         ...(isPlaylist ? { flatPlaylist: true } : {}),
 
-        // Use cookies if available
+        /* Use cookies if available */
         ...(COOKIES_PATH ? { cookies: COOKIES_PATH } : {}),
 
         ...flags
@@ -55,14 +80,26 @@ const getInfo = (url, flags = {}) => {
  * Fetches metadata optimized for streaming or download workflows.
  *
  * Differences from getInfo():
- * - Allows controlling whether playlist entries are flattened.
- * - Supports use cases where full video URLs are required (e.g., downloading).
+ * - Allows explicit control over playlist flattening.
+ * - Can return full video URLs when preparing for downloads.
  *
- * @param {string | URL} url - The YouTube video or playlist URL.
- * @param {Object} [options={}] - Options for fetching metadata.
- * @param {boolean} [options.forDownload=false] - If true, returns full video URLs instead of flat IDs.
- * @param {Object} [options.flags] - Additional yt-dlp flags.
- * @returns {Promise<Object>} - Parsed metadata JSON from yt-dlp.
+ * Typical use cases:
+ * - Streaming pipelines
+ * - Download queues
+ * - Playlists where each entry must be resolved individually
+ *
+ * @param {string | URL} url
+ *   The YouTube video or playlist URL.
+ *
+ * @param {Object} [options={}]
+ * @param {boolean} [options.forDownload=false]
+ *   If true, disables playlist flattening to preserve full video URLs.
+ *
+ * @param {Object} [options.flags]
+ *   Additional yt-dlp flags.
+ *
+ * @returns {Promise<Object>}
+ *   Parsed metadata JSON returned by yt-dlp.
  */
 const getInfoForStream = (url, { forDownload = false, ...flags } = {}) => {
     const isPlaylist = url.includes('list=');
@@ -90,23 +127,33 @@ const getInfoForStream = (url, { forDownload = false, ...flags } = {}) => {
 };
 
 /**
- * Downloads a YouTube video using previously saved metadata from a JSON file.
+ * Downloads a YouTube video using previously extracted metadata.
  *
- * This separates metadata extraction from downloading, minimizing repeated scraping.
+ * This method separates metadata extraction from the download phase,
+ * which:
+ * - Reduces repeated scraping
+ * - Improves reliability
+ * - Allows metadata caching strategies
  *
- * @param {string} infoFile - Path to a JSON file generated by getInfo().
- * @param {Object} [flags={}] - Additional yt-dlp flags (format, output template, etc.).
+ * @param {string} infoFile
+ *   Path to a JSON file generated by getInfo() or getInfoForStream().
+ *
+ * @param {Object} [flags={}]
+ *   Additional yt-dlp flags (format selection, output template, etc.).
+ *
  * @returns {Promise<void>}
  */
 const fromInfo = (infoFile, flags = {}) => {
     return youtubedl.exec('', {
         loadInfoJson: infoFile,
         jsRuntimes: 'node',
+
         sleepInterval: 3,
         maxSleepInterval: 8,
         retries: 2,
         fragmentRetries: 2,
         concurrentFragments: 1,
+
         ...(COOKIES_PATH ? { cookies: COOKIES_PATH } : {}),
         ...flags
     });

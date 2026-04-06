@@ -1,6 +1,6 @@
 # YouTuDown API
 
-## Version v1.0.0
+## Version v1.1.0
 
 Backend for downloading individual YouTube videos and playlists. This version allows you to retrieve detailed video information, download them in different qualities, and supports both server-side and client-side downloads.
 

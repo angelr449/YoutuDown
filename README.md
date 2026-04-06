@@ -1,29 +1,42 @@
 # YouTuDown API
 
-## Version v0.2.0-Beta
+## Version v1.1.0
 
 Backend for downloading individual YouTube videos and playlists. This version allows you to retrieve detailed video information, download them in different qualities, and supports both server-side and client-side downloads.
 
 ## Features
 
-- ✅ Individual video downloads
-- ✅ Playlist downloads
-- ✅ Server-side downloads (save to server)
-- ✅ Client-side downloads (stream to user)
-- ✅ Video information extraction (resolution, duration, available formats)
+* ✅ Individual video downloads
+* ✅ Playlist downloads
+* ✅ Server-side downloads (save to server)
+* ✅ Client-side downloads (stream to user)
+* ✅ Video information extraction (resolution, duration, available formats)
 
-## Frontend / Demo
+---
 
-> ⚠️ Note: The `public/example-frontend` folder contains a **frontend example** generated with **AI**.  
-> This frontend is included solely for demonstration purposes to showcase and test the backend functionality.  
-> All significant development, logic, and commits belong to the **backend**, which is the main focus and original part of this project.
+## Frontend — Live Consumer Demo
 
-This frontend is not intended to represent production-quality code or best UI/UX practices.  
-It is recommended to review and rewrite it if a final or professional version is desired.
+> 🔗 **[angelr449/YoutuDown-Frontend](https://github.com/angelr449/YoutuDown-Frontend)**
+
+This repository includes a handmade frontend built with **React 19 + TypeScript + Vite** that demonstrates how to consume the YoutuDown API in a real application.
+
+It covers the full user flow:
+
+1. Paste a YouTube URL
+2. Call `GET /api/youtuDown/info` to retrieve video info and available formats
+3. Select a quality/format
+4. Trigger `POST /api/youtuDown/download-stream` to stream the video directly to the browser
+
+It is a good starting point if you want to build your own client on top of this API. Check its repository for setup instructions and environment variable configuration.
+
+> ⚠️ Note: The `public/example-frontend` folder inside **this** repository contains a separate AI-generated frontend included only for quick local testing of the API. It is not intended as production-ready code. The link above points to the fully handcrafted frontend.
+
+---
 
 ## API Endpoints
 
 ### Base Route
+
 ```
 http://localhost:8080/api/youtuDown
 ```
@@ -37,9 +50,11 @@ http://localhost:8080/api/youtuDown
 **Description:** Extracts video information using the provided URL.
 
 **Query Parameters:**
-- `url` - YouTube video URL
+
+* `url` - YouTube video URL
 
 **Example Response:**
+
 ```json
 {
     "infoId": "303d77d2-e9e8-4f72-a8ed-429c51d8940d",
@@ -75,14 +90,15 @@ http://localhost:8080/api/youtuDown
 ```
 
 **Response Fields:**
-- `infoId`: Unique ID of the temporary file containing video information
-- `title`: Video title
-- `duration`: Duration in seconds
-- `formats`: Array of available formats
-  - `id`: Quality format ID
-  - `resolution`: Video resolution
-  - `hasAudio`: Indicates if it includes audio
-  - `hasVideo`: Indicates if it includes video
+
+* `infoId`: Unique ID of the temporary file containing video information
+* `title`: Video title
+* `duration`: Duration in seconds
+* `formats`: Array of available formats
+  * `id`: Quality format ID
+  * `resolution`: Video resolution
+  * `hasAudio`: Indicates if it includes audio
+  * `hasVideo`: Indicates if it includes video
 
 > **Important:** The `infoId` is required for download. Information is temporarily saved in a `.json` file.
 
@@ -95,6 +111,7 @@ http://localhost:8080/api/youtuDown
 **Description:** Downloads the video to the server in the specified format and location.
 
 **Body (JSON):**
+
 ```json
 {
   "outputPath": "/home/user/Videos",
@@ -105,12 +122,14 @@ http://localhost:8080/api/youtuDown
 ```
 
 **Parameters:**
-- `outputPath`: Path where the video will be saved on the server
-- `filename`: File name (optional)
-- `infoId`: ID obtained from the `/info` request
-- `formatId`: Desired quality format ID
+
+* `outputPath`: Path where the video will be saved on the server
+* `filename`: File name (optional)
+* `infoId`: ID obtained from the `/info` request
+* `formatId`: Desired quality format ID
 
 **Response:**
+
 ```json
 {
     "message": "Video downloaded successfully to server"
@@ -126,18 +145,21 @@ http://localhost:8080/api/youtuDown
 **Description:** Streams the video directly to the client for download in the user's browser.
 
 **Query Params:**
-- `infoId` - ID obtained from the `/info` request
-- `formatId` - Desired quality format ID
+
+* `infoId` - ID obtained from the `/info` request
+* `formatId` - Desired quality format ID
 
 **Example:**
+
 ```
 POST /api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&formatId=96
 ```
 
 **Response:**
-- Binary stream of the video file
-- Content-Type: `video/mp4` or `application/octet-stream`
-- Content-Disposition header with the filename
+
+* Binary stream of the video file
+* Content-Type: `video/mp4` or `application/octet-stream`
+* Content-Disposition header with the filename
 
 ---
 
@@ -148,9 +170,11 @@ POST /api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&
 **Description:** Extracts information from all videos in a YouTube playlist.
 
 **Query Parameters:**
-- `url` - YouTube playlist URL
+
+* `url` - YouTube playlist URL
 
 **Example Response:**
+
 ```json
 {
     "playlistId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -182,6 +206,7 @@ POST /api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&
 **Description:** Downloads all videos from a playlist to the server.
 
 **Body (JSON):**
+
 ```json
 {
   "playlistId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -191,11 +216,13 @@ POST /api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&
 ```
 
 **Parameters:**
-- `playlistId`: ID obtained from the `/playlist/info` request
-- `outputPath`: Directory where videos will be saved on the server
-- `formatId`: Desired quality format ID for all videos
+
+* `playlistId`: ID obtained from the `/playlist/info` request
+* `outputPath`: Directory where videos will be saved on the server
+* `formatId`: Desired quality format ID for all videos
 
 **Response:**
+
 ```json
 {
     "message": "Playlist download started",
@@ -211,7 +238,8 @@ POST /api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&
 ### Downloading a Single Video (Client-side)
 
 1. **Get video information:**
-   ```bash
+
+   ```
    GET http://localhost:8080/api/youtuDown/info?url=https://youtube.com/watch?v=...
    ```
 
@@ -220,21 +248,24 @@ POST /api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&
 3. **Select the desired `formatId` from available formats**
 
 4. **Stream download to client:**
-   ```bash
+
+   ```
    POST http://localhost:8080/api/youtuDown/download-stream?infoId=303d77d2-e9e8-4f72-a8ed-429c51d8940d&formatId=96
    ```
 
 ### Downloading a Playlist (Server-side)
 
 1. **Get playlist information:**
-   ```bash
+
+   ```
    GET http://localhost:8080/api/youtuDown/playlist/info?url=https://youtube.com/playlist?list=...
    ```
 
 2. **Save the `playlistId` from the response**
 
 3. **Download entire playlist:**
-   ```bash
+
+   ```
    POST http://localhost:8080/api/youtuDown/playlist/download
    Content-Type: application/json
 
@@ -274,27 +305,7 @@ The server will run on `http://localhost:8080`
 
 ## License
 
-MIT License
-
-Copyright (c) 2026 angel_r
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+MIT License — see [LICENSE](./LICENSE) for details.
 
 ---
 

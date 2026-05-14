@@ -29,7 +29,7 @@ It covers the full user flow:
 
 It is a good starting point if you want to build your own client on top of this API. Check its repository for setup instructions and environment variable configuration.
 
-> ⚠️ Note: The `public/example-frontend` folder inside **this** repository contains a separate AI-generated frontend included only for quick local testing of the API. It is not intended as production-ready code. The link above points to the fully handcrafted frontend.
+
 
 ---
 

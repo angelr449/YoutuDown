@@ -29,7 +29,7 @@ Cubre el flujo completo de uso:
 
 Es un buen punto de partida si quieres construir tu propio cliente sobre esta API. Consulta su repositorio para instrucciones de instalación y configuración de variables de entorno.
 
-> ⚠️ Nota: La carpeta `public/example-frontend` dentro de **este** repositorio contiene un frontend distinto, generado con IA, incluido únicamente para pruebas locales rápidas del API. No está pensado como código listo para producción. El enlace de arriba apunta al frontend completamente hecho a mano.
+
 
 ---
 
